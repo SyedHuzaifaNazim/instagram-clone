@@ -1,28 +1,94 @@
+// import React from 'react';
+// import Image from 'next/image';
+// import { collection, getDocs } from 'firebase/firestore';
+// import { db } from '../lib/firebase'; // Import the Firebase Firestore instance
+
+// const ProfilePage = ({ userData }) => {
+//   const user = JSON.parse(userData);
+
+//   return (
+//     <div style={styles.container}>
+//       {/* Profile Header */}
+//       <div style={styles.header}>
+//         <div style={styles.profileImageWrapper}>
+//           <Image
+//             src={user.profilePicture}
+//             alt="Profile Picture"
+//             width={150}
+//             height={150}
+//             style={styles.profileImage}
+//           />
+//         </div>
+//         <div style={styles.profileDetails}>
+//           <h2>{user.username}</h2>
+//           <p>{user.name}</p>
+//           <p>{user.bio}</p>
+//           <div style={styles.stats}>
+//             <div><strong>{user.posts}</strong> posts</div>
+//             <div><strong>{user.followers}</strong> followers</div>
+//             <div><strong>{user.following}</strong> following</div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Posts Grid */}
+//       <div style={styles.grid}>
+//         {user.postImages.map((image, index) => (
+//           <div key={index} style={styles.gridItem}>
+//             <Image src={image} alt={`Post ${index + 1}`} width={300} height={300} />
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export async function getServerSideProps() {
+//   const querySnapshot = await getDocs(collection(db, "users"));
+//   let userData = {};
+
+//   querySnapshot.forEach((doc) => {
+//     // Assuming you're fetching data for one specific user
+//     if (doc.id === "profileUserId") {
+//       userData = doc.data();
+//     }
+//   });
+
+//   return {
+//     props: {
+//       userData: JSON.stringify(userData),
+//     },
+//   };
+// }
+
+// const styles = {
+//   container: { width: '80%', margin: '0 auto', fontFamily: 'Arial, sans-serif' },
+//   header: { display: 'flex', alignItems: 'center', marginBottom: '20px' },
+//   profileImageWrapper: { borderRadius: '50%', overflow: 'hidden', marginRight: '20px' },
+//   profileImage: { borderRadius: '50%' },
+//   profileDetails: { flex: 1 },
+//   stats: { display: 'flex', gap: '20px', marginTop: '10px' },
+//   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' },
+//   gridItem: { overflow: 'hidden' },
+// };
+
+// export default ProfilePage;
+
+
+
+
+
 import React from 'react';
 import Image from 'next/image';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../lib/firebase'; // Import the Firebase Firestore instance
 
-const ProfilePage = () => {
-  // Dummy data for profile
-  const user = {
-    username: 'johndoe',
-    name: 'John Doe',
-    bio: 'Traveler ✈️ | Photographer 📸 | Coffee Lover ☕️',
-    profilePicture: '/profile-picture.jpg', // Add your profile picture
-    followers: 1200,
-    following: 300,
-    posts: 45,
-    postImages: [
-      '/post1.jpg',
-      '/post2.jpg',
-      '/post3.jpg',
-      '/post4.jpg',
-      '/post5.jpg',
-      '/post6.jpg',
-      '/post7.jpg',
-      '/post8.jpg',
-      '/post9.jpg',
-    ],
-  };
+const ProfilePage = ({ userData }) => {
+  const user = JSON.parse(userData);
+
+  if (!user) {
+    return <div>User not found</div>;
+  }
 
   return (
     <div style={styles.container}>
@@ -61,42 +127,52 @@ const ProfilePage = () => {
   );
 };
 
-// Inline CSS styles
+export async function getServerSideProps(context) {
+  const userId = context.query.userId;
+
+  if (!userId) {
+    return {
+      notFound: true,
+    };
+  }
+
+  try {
+    const q = query(collection(db, "users"), where("id", "==", userId));
+    const querySnapshot = await getDocs(q);
+    let userData = {};
+
+    querySnapshot.forEach((doc) => {
+      userData = doc.data();
+    });
+
+    if (!userData) {
+      return {
+        notFound: true,
+      };
+    }
+
+    return {
+      props: {
+        userData: JSON.stringify(userData),
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      notFound: true,
+    };
+  }
+}
+
 const styles = {
-  container: {
-    width: '80%',
-    margin: '0 auto',
-    fontFamily: 'Arial, sans-serif',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  profileImageWrapper: {
-    borderRadius: '50%',
-    overflow: 'hidden',
-    marginRight: '20px',
-  },
-  profileImage: {
-    borderRadius: '50%',
-  },
-  profileDetails: {
-    flex: 1,
-  },
-  stats: {
-    display: 'flex',
-    gap: '20px',
-    marginTop: '10px',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-    gap: '10px',
-  },
-  gridItem: {
-    overflow: 'hidden',
-  },
+  container: { width: '80%', margin: '0 auto', fontFamily: 'Arial, sans-serif' },
+  header: { display: 'flex', alignItems: 'center', marginBottom: '20px' },
+  profileImageWrapper: { borderRadius: '50%', overflow: 'hidden', marginRight: '20px' },
+  profileImage: { borderRadius: '50%' },
+  profileDetails: { flex: 1 },
+  stats: { display: 'flex', gap: '20px', marginTop: '10px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' },
+  gridItem: { overflow: 'hidden' },
 };
 
 export default ProfilePage;
