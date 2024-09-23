@@ -81,7 +81,21 @@
 import React from 'react';
 import Image from 'next/image';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../lib/firebase'; // Import the Firebase Firestore instance
+import { db } from '../lib/firebase';
+import { getAuth } from 'firebase/auth'; // Import the Firebase Firestore instance
+
+const auth = getAuth();
+const user = auth.currentUser;
+
+if (user !== null) {
+  user.providerData.forEach((profile) => {
+    console.log("Sign-in provider: " + profile.providerId);
+    console.log("  Provider-specific UID: " + profile.uid);
+    console.log("  Name: " + profile.displayName);
+    console.log("  Email: " + profile.email);
+    console.log("  Photo URL: " + profile.photoURL);
+  });
+}
 
 const ProfilePage = ({ userData }) => {
   const user = JSON.parse(userData);
