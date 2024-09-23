@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, createUserWithEmailAndPassword , signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore , doc , setDoc } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import dynamic from "next/dynamic";
 
@@ -24,6 +24,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
+<<<<<<< HEAD
 // const analytics = dynamic(() => import('firebase/analytics'), {
 //   ssr: false,
 // })();
